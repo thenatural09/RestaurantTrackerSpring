@@ -19,35 +19,36 @@ import java.util.List;
 public class RestaurantTrackerController {
     @Autowired
     UserRepository users;
+
+    @Autowired
     RestaurantRepository restaurants;
 
     @RequestMapping(path = "/", method = RequestMethod.GET)
     public String home(HttpSession session, Model model, String search) throws Exception {
         String username = (String) session.getAttribute("username");
-        User user = users.findByName(username);
-        Iterable<Restaurant> rests;
-        if (username == null); {
-
-            throw new Exception("Wrong password");
+        User user = users.findByUsername(username);
+        List<Restaurant> rests;
+        if(username == null) {
+            return "login";
         }
         else if (search != null) {
-            rests = restaurants.searchLocation(search);
+            rests = restaurants.findByLocation(search);
+        } else {
+            rests = (List<Restaurant>) restaurants.findAll();
         }
-        else {
-            rests = restaurants.findByUser(user);
-        }
+        model.addAttribute("username",user);
         model.addAttribute("restaurants", rests);
         return "home";
     }
 
     @RequestMapping(path = "/login", method = RequestMethod.POST)
     public String login(String username, String password, HttpSession session) throws Exception {
-        User user = users.findByName(username);
+        User user = users.findByUsername(username);
         if (user == null) {
             user = new User(username, PasswordStorage.createHash(password));
             users.save(user);
         }
-        else if (PasswordStorage.verifyPassword(password, user.password)) {
+        else if (!PasswordStorage.verifyPassword(password, user.password)) {
             throw new Exception("Wrong password!");
         }
         session.setAttribute("username", username);
@@ -63,10 +64,10 @@ public class RestaurantTrackerController {
     @RequestMapping(path = "/create-restaurant", method = RequestMethod.POST)
     public String create(HttpSession session, String name, String location, int rating, String comment) throws Exception {
         String username = (String) session.getAttribute("name");
-        if (username == null) {
+        User user = users.findByUsername(username);
+        if (user == null) {
             throw new Exception("Not logged in.");
         }
-        User user = users.findByName(username);
         Restaurant r = new Restaurant(name, location, rating, comment, user);
         restaurants.save(r);
         return "redirect:/";

@@ -6,10 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpSession;
-import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,7 +60,7 @@ public class RestaurantTrackerController {
 
     @RequestMapping(path = "/create-restaurant", method = RequestMethod.POST)
     public String create(HttpSession session, String name, String location, int rating, String comment) throws Exception {
-        String username = (String) session.getAttribute("name");
+        String username = (String) session.getAttribute("username");
         User user = users.findByUsername(username);
         if (user == null) {
             throw new Exception("Not logged in.");
